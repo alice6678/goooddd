@@ -3,40 +3,39 @@ html_code = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ta3lii9aa - Virtual Art Gallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ta3lii9aa</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            background: #111;
+            background: #0a0a0a;
             color: #fff;
+            width: 100%; height: 100%;
+            touch-action: none;
         }
         #canvas-container {
-            width: 100vw;
-            height: 100vh;
+            width: 100vw; height: 100vh;
             display: block;
         }
         /* Crosshair */
         #crosshair {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 10px;
-            height: 10px;
-            border: 2px solid rgba(255,255,255,0.8);
+            top: 50%; left: 50%;
+            width: 12px; height: 12px;
+            border: 2px solid rgba(255,255,255,0.7);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 10;
-            transition: border-color 0.2s;
+            transition: all 0.15s ease;
         }
         #crosshair.hovering {
-            border-color: #ff6b6b;
-            background: rgba(255,107,107,0.3);
-            width: 14px;
-            height: 14px;
+            border-color: #c9a96e;
+            background: rgba(201,169,110,0.25);
+            width: 18px; height: 18px;
+            box-shadow: 0 0 15px rgba(201,169,110,0.4);
         }
         /* Instructions */
         #instructions {
@@ -44,83 +43,93 @@ html_code = '''<!DOCTYPE html>
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            padding: 15px 30px;
+            background: rgba(10,10,10,0.85);
+            padding: 14px 28px;
             border-radius: 30px;
-            font-size: 14px;
-            letter-spacing: 1px;
+            font-size: 13px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             z-index: 10;
             pointer-events: none;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(201,169,110,0.2);
+            color: rgba(255,255,255,0.6);
+            white-space: nowrap;
         }
         #instructions kbd {
-            background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
+            background: rgba(201,169,110,0.15);
+            color: #c9a96e;
+            padding: 3px 8px;
             border-radius: 4px;
             font-family: monospace;
-            margin: 0 2px;
+            margin: 0 3px;
+            border: 1px solid rgba(201,169,110,0.2);
+        }
+        @media (max-width: 768px) {
+            #instructions { display: none; }
         }
         /* Artwork Popup */
         #popup-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
+            background: rgba(5,5,5,0.92);
+            backdrop-filter: blur(15px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 100;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
         #popup-overlay.active {
             display: flex;
             opacity: 1;
         }
         #popup-card {
-            background: #1a1a1a;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            max-width: 500px;
+            background: #141414;
+            border: 1px solid rgba(201,169,110,0.15);
+            border-radius: 20px;
+            max-width: 480px;
             width: 90%;
             overflow: hidden;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,169,110,0.05);
         }
         #popup-overlay.active #popup-card {
-            transform: scale(1);
+            transform: scale(1) translateY(0);
         }
         #popup-image {
             width: 100%;
-            height: 350px;
+            height: 320px;
             object-fit: cover;
             display: block;
-            background: #222;
+            background: #1a1a1a;
         }
         #popup-content {
-            padding: 30px;
+            padding: 28px;
         }
         #popup-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 300;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #f0f0f0;
+        }
+        #popup-artist {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 18px;
             letter-spacing: 2px;
             text-transform: uppercase;
         }
-        #popup-artist {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
-        }
         #popup-price {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
-            color: #ff6b6b;
-            margin-bottom: 25px;
+            color: #c9a96e;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
         }
         .popup-btn {
             display: block;
@@ -128,14 +137,14 @@ html_code = '''<!DOCTYPE html>
             padding: 16px;
             margin-bottom: 12px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             text-align: center;
-            transition: all 0.2s;
-            letter-spacing: 1px;
+            transition: all 0.25s ease;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
         }
         .btn-whatsapp {
@@ -145,75 +154,176 @@ html_code = '''<!DOCTYPE html>
         .btn-whatsapp:hover {
             background: #1ebe57;
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(37,211,102,0.3);
+            box-shadow: 0 8px 25px rgba(37,211,102,0.3);
         }
         .btn-email {
             background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.3);
+            color: #ccc;
+            border: 1px solid rgba(255,255,255,0.15);
         }
         .btn-email:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-2px);
-        }
-        .btn-close {
             background: rgba(255,255,255,0.05);
-            color: #888;
-            margin-bottom: 0;
-            margin-top: 10px;
-        }
-        .btn-close:hover {
-            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
             color: #fff;
         }
-        /* Gallery Title */
-        #gallery-title {
+        .btn-close {
+            background: rgba(255,255,255,0.03);
+            color: #666;
+            margin-bottom: 0;
+            margin-top: 8px;
+        }
+        .btn-close:hover {
+            background: rgba(255,255,255,0.08);
+            color: #aaa;
+        }
+        /* Branding Title */
+        #site-title {
             position: fixed;
-            top: 30px;
+            top: 28px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 14px;
-            letter-spacing: 8px;
+            font-size: 13px;
+            letter-spacing: 10px;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.5);
+            color: rgba(201,169,110,0.5);
             z-index: 10;
             pointer-events: none;
+            font-weight: 300;
         }
         /* Loading */
         #loading {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: #111;
+            background: #0a0a0a;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 200;
             flex-direction: column;
-            transition: opacity 0.5s;
+            transition: opacity 0.6s ease;
         }
         #loading.hidden {
             opacity: 0;
             pointer-events: none;
         }
         #loading-text {
-            font-size: 24px;
-            letter-spacing: 10px;
+            font-size: 28px;
+            letter-spacing: 14px;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            color: #c9a96e;
+            font-weight: 300;
         }
         #loading-bar {
-            width: 200px;
-            height: 2px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
+            width: 180px;
+            height: 1px;
+            background: rgba(201,169,110,0.1);
+            border-radius: 1px;
             overflow: hidden;
         }
         #loading-progress {
             height: 100%;
             width: 0%;
-            background: #fff;
-            transition: width 0.3s;
+            background: #c9a96e;
+            transition: width 0.4s ease;
+        }
+        /* Mobile Touch Controls */
+        #mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+        @media (max-width: 768px) {
+            #mobile-controls { display: block; }
+        }
+        /* Virtual Joystick */
+        #joystick-zone {
+            position: absolute;
+            bottom: 80px;
+            left: 40px;
+            width: 140px;
+            height: 140px;
+            pointer-events: auto;
+        }
+        #joystick-base {
+            position: absolute;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            top: 10px; left: 10px;
+        }
+        #joystick-knob {
+            position: absolute;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: rgba(201,169,110,0.3);
+            border: 1px solid rgba(201,169,110,0.4);
+            top: 45px; left: 45px;
+            transition: transform 0.05s;
+            box-shadow: 0 0 20px rgba(201,169,110,0.1);
+        }
+        #joystick-knob.active {
+            background: rgba(201,169,110,0.5);
+            box-shadow: 0 0 30px rgba(201,169,110,0.2);
+        }
+        /* Look Zone (right side) */
+        #look-zone {
+            position: absolute;
+            top: 0; right: 0;
+            width: 50%; height: 100%;
+            pointer-events: auto;
+        }
+        /* Action Button */
+        #action-btn {
+            position: absolute;
+            bottom: 100px;
+            right: 40px;
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            background: rgba(201,169,110,0.15);
+            border: 1px solid rgba(201,169,110,0.3);
+            color: #c9a96e;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.15s;
+        }
+        #action-btn:active, #action-btn.pressed {
+            background: rgba(201,169,110,0.35);
+            transform: scale(0.95);
+            box-shadow: 0 0 20px rgba(201,169,110,0.2);
+        }
+        /* Mobile hint */
+        #mobile-hint {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10,10,10,0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.4);
+            z-index: 10;
+            pointer-events: none;
+            border: 1px solid rgba(201,169,110,0.1);
+        }
+        @media (max-width: 768px) {
+            #mobile-hint { display: block; }
         }
     </style>
 </head>
@@ -223,19 +333,31 @@ html_code = '''<!DOCTYPE html>
         <div id="loading-bar"><div id="loading-progress"></div></div>
     </div>
 
-    <div id="gallery-title">Ta3lii9aa Gallery</div>
+    <div id="site-title">Ta3lii9aa</div>
     <div id="crosshair"></div>
     <div id="instructions">
-        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move &nbsp;|&nbsp; <kbd>CLICK</kbd> to view art &nbsp;|&nbsp; <kbd>ESC</kbd> to release mouse
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move &nbsp;|&nbsp; <kbd>CLICK</kbd> to view &nbsp;|&nbsp; <kbd>ESC</kbd> to release
+    </div>
+    <div id="mobile-hint">Drag right side to look around</div>
+
+    <!-- Mobile Touch Controls -->
+    <div id="mobile-controls">
+        <div id="look-zone"></div>
+        <div id="joystick-zone">
+            <div id="joystick-base"></div>
+            <div id="joystick-knob"></div>
+        </div>
+        <div id="action-btn">VIEW</div>
     </div>
 
+    <!-- Artwork Popup -->
     <div id="popup-overlay">
         <div id="popup-card">
             <img id="popup-image" src="" alt="Artwork">
             <div id="popup-content">
                 <div id="popup-title">Artwork Title</div>
                 <div id="popup-artist">Artist Name</div>
-                <div id="popup-price">$0.00</div>
+                <div id="popup-price">0 DH</div>
                 <a id="popup-whatsapp" href="https://wa.me/212658836033" target="_blank" class="popup-btn btn-whatsapp">Buy via WhatsApp</a>
                 <a id="popup-email" href="mailto:hassan.hafidi2005@gmail.com" class="popup-btn btn-email">Contact via Email</a>
                 <button class="popup-btn btn-close" onclick="closePopup()">Close</button>
@@ -250,74 +372,70 @@ html_code = '''<!DOCTYPE html>
     
     <script>
         // ============================================
-        // GALLERY CONFIGURATION - EDIT YOUR IMAGES HERE
+        // ARTWORKS CONFIGURATION - REPLACE URLS HERE
         // ============================================
-        // Replace the URLs below with your own hosted image URLs.
-        // You can upload images to Imgur, GitHub, or any image hosting service.
-        // Make sure to use the DIRECT image URL (ends in .jpg, .png, etc.)
+        // Replace the imageUrl values below with your direct image URLs.
+        // Upload images to Imgur, GitHub, or any hosting service.
+        // Use the DIRECT image URL (ends in .jpg, .png, etc.)
         
         const ARTWORKS = [
             {
                 id: 1,
-                title: "The Morphine Show",
-                artist: "Morphine M-Psy",
-                price: "350 MAD",
-                // Replace with your direct image URL:
-                imageUrl: "https://i.imgur.com/placeholder1.jpg",
-                // Position on wall: [x, y, z] coordinates
-                position: [0, 2.5, -9.9],
-                // Rotation: [x, y, z] in radians. Use Math.PI for 180 degrees
+                title: "Maldini",
+                artist: "AC Milan Collection",
+                price: "70 DH",
+                // REPLACE WITH YOUR DIRECT IMAGE URL:
+                imageUrl: "https://i.imgur.com/placeholder_maldini.jpg",
+                position: [-5, 2.8, -9.7],
                 rotation: [0, 0, 0],
-                // Wall: "back", "left", "right", "front"
                 wall: "back",
-                // Frame size: [width, height]
-                size: [3, 4]
+                size: [2.8, 3.8]
             },
             {
                 id: 2,
                 title: "Toji Fushiguro",
                 artist: "Anime Collection",
-                price: "280 MAD",
-                imageUrl: "https://i.imgur.com/placeholder2.jpg",
-                position: [-9.9, 2.5, 0],
-                rotation: [0, Math.PI / 2, 0],
-                wall: "left",
-                size: [3, 4.2]
+                price: "70 DH",
+                imageUrl: "https://i.imgur.com/placeholder_toji.jpg",
+                position: [5, 2.8, -9.7],
+                rotation: [0, 0, 0],
+                wall: "back",
+                size: [2.8, 3.8]
             },
             {
                 id: 3,
-                title: "Abstract Vision",
-                artist: "Unknown Artist",
-                price: "420 MAD",
-                imageUrl: "https://i.imgur.com/placeholder3.jpg",
-                position: [9.9, 2.5, 0],
-                rotation: [0, -Math.PI / 2, 0],
-                wall: "right",
-                size: [3.5, 3]
+                title: "Alice in Borderland",
+                artist: "Netflix Series",
+                price: "70 DH",
+                imageUrl: "https://i.imgur.com/placeholder_alice.jpg",
+                position: [-9.7, 2.8, 0],
+                rotation: [0, Math.PI / 2, 0],
+                wall: "left",
+                size: [2.8, 3.8]
             },
             {
                 id: 4,
-                title: "Golden Era",
-                artist: "Modern Classic",
-                price: "500 MAD",
-                imageUrl: "https://i.imgur.com/placeholder4.jpg",
-                position: [0, 2.5, 9.9],
-                rotation: [0, Math.PI, 0],
-                wall: "front",
-                size: [4, 3]
+                title: "Morphine M-Psy",
+                artist: "The Morphine Show",
+                price: "70 DH",
+                imageUrl: "https://i.imgur.com/placeholder_morphine.jpg",
+                position: [9.7, 2.8, 0],
+                rotation: [0, -Math.PI / 2, 0],
+                wall: "right",
+                size: [2.8, 3.8]
             }
         ];
 
         // ============================================
-        // THREE.JS GALLERY SETUP
+        // THREE.JS SCENE SETUP
         // ============================================
         
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
-        scene.fog = new THREE.Fog(0x1a1a1a, 10, 30);
+        scene.background = new THREE.Color(0x0a0a0a);
+        scene.fog = new THREE.Fog(0x0a0a0a, 8, 35);
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 1.7, 5);
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.65, 6);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -325,114 +443,383 @@ html_code = '''<!DOCTYPE html>
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.outputEncoding = THREE.sRGBEncoding;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        // ============================================
+        // LIGHTING - Professional Museum/Library
+        // ============================================
+        
+        // Ambient base light (very dim)
+        const ambientLight = new THREE.AmbientLight(0xffeedd, 0.08);
         scene.add(ambientLight);
 
-        // Main ceiling light
-        const mainLight = new THREE.PointLight(0xffeebb, 0.8, 20);
-        mainLight.position.set(0, 8, 0);
-        mainLight.castShadow = true;
-        mainLight.shadow.mapSize.width = 2048;
-        mainLight.shadow.mapSize.height = 2048;
-        scene.add(mainLight);
+        // Hemisphere light for subtle fill
+        const hemiLight = new THREE.HemisphereLight(0xffeedd, 0x111111, 0.15);
+        scene.add(hemiLight);
 
-        // Spotlights for artwork
-        const spotLightBack = new THREE.SpotLight(0xffffff, 0.5, 15, Math.PI / 6, 0.5, 1);
-        spotLightBack.position.set(0, 7, -5);
-        spotLightBack.target.position.set(0, 2.5, -9);
-        scene.add(spotLightBack);
-        scene.add(spotLightBack.target);
+        // Central chandelier light (warm)
+        const centerLight = new THREE.PointLight(0xffcc88, 0.4, 25, 2);
+        centerLight.position.set(0, 8.5, 0);
+        centerLight.castShadow = true;
+        centerLight.shadow.mapSize.width = 2048;
+        centerLight.shadow.mapSize.height = 2048;
+        centerLight.shadow.bias = -0.0001;
+        scene.add(centerLight);
 
-        const spotLightLeft = new THREE.SpotLight(0xffffff, 0.5, 15, Math.PI / 6, 0.5, 1);
-        spotLightLeft.position.set(-5, 7, 0);
-        spotLightLeft.target.position.set(-9, 2.5, 0);
-        scene.add(spotLightLeft);
-        scene.add(spotLightLeft.target);
+        // Spotlights array for artworks
+        const spotlights = [];
 
-        const spotLightRight = new THREE.SpotLight(0xffffff, 0.5, 15, Math.PI / 6, 0.5, 1);
-        spotLightRight.position.set(5, 7, 0);
-        spotLightRight.target.position.set(9, 2.5, 0);
-        scene.add(spotLightRight);
-        scene.add(spotLightRight.target);
+        function createSpotlight(targetPos, lightPos, intensity = 1.2) {
+            const spot = new THREE.SpotLight(0xffeebb, intensity, 18, Math.PI / 8, 0.6, 1.5);
+            spot.position.set(...lightPos);
+            spot.target.position.set(...targetPos);
+            spot.castShadow = true;
+            spot.shadow.mapSize.width = 1024;
+            spot.shadow.mapSize.height = 1024;
+            spot.shadow.bias = -0.0001;
+            scene.add(spot);
+            scene.add(spot.target);
+            spotlights.push(spot);
+            
+            // Visible light fixture (small cone on ceiling)
+            const fixtureGeo = new THREE.ConeGeometry(0.15, 0.3, 8);
+            const fixtureMat = new THREE.MeshStandardMaterial({ 
+                color: 0x222222, 
+                roughness: 0.3, 
+                metalness: 0.9 
+            });
+            const fixture = new THREE.Mesh(fixtureGeo, fixtureMat);
+            fixture.position.set(lightPos[0], 9.85, lightPos[2]);
+            fixture.rotation.x = Math.PI;
+            scene.add(fixture);
+            
+            // Light beam cone (volumetric hint)
+            const beamGeo = new THREE.ConeGeometry(0.8, 7, 16, 1, true);
+            const beamMat = new THREE.MeshBasicMaterial({
+                color: 0xffeebb,
+                transparent: true,
+                opacity: 0.02,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            const beam = new THREE.Mesh(beamGeo, beamMat);
+            beam.position.set(
+                lightPos[0], 
+                lightPos[1] - 3.5, 
+                lightPos[2]
+            );
+            beam.lookAt(targetPos[0], targetPos[1], targetPos[2]);
+            beam.rotateX(-Math.PI / 2);
+            scene.add(beam);
+            
+            return spot;
+        }
 
-        // Floor
-        const floorGeometry = new THREE.PlaneGeometry(20, 20);
-        const floorMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x2a2a2a,
-            roughness: 0.8,
-            metalness: 0.1
+        // Create spotlights for each artwork
+        createSpotlight([-5, 2.8, -9], [-5, 9, -4], 1.4);      // Maldini
+        createSpotlight([5, 2.8, -9], [5, 9, -4], 1.4);        // Toji
+        createSpotlight([-9, 2.8, 0], [-4, 9, 0], 1.4);         // Alice
+        createSpotlight([9, 2.8, 0], [4, 9, 0], 1.4);          // Morphine
+
+        // Accent wall wash lights
+        const washBack = new THREE.SpotLight(0xffddaa, 0.3, 20, Math.PI / 3, 0.8, 1);
+        washBack.position.set(0, 8, -5);
+        washBack.target.position.set(0, 2, -10);
+        scene.add(washBack);
+        scene.add(washBack.target);
+
+        const washLeft = new THREE.SpotLight(0xffddaa, 0.3, 20, Math.PI / 3, 0.8, 1);
+        washLeft.position.set(-5, 8, 0);
+        washLeft.target.position.set(-10, 2, 0);
+        scene.add(washLeft);
+        scene.add(washLeft.target);
+
+        const washRight = new THREE.SpotLight(0xffddaa, 0.3, 20, Math.PI / 3, 0.8, 1);
+        washRight.position.set(5, 8, 0);
+        washRight.target.position.set(10, 2, 0);
+        scene.add(washRight);
+        scene.add(washRight.target);
+
+        // ============================================
+        // MATERIALS - Library Style
+        // ============================================
+        
+        const woodDarkMaterial = new THREE.MeshStandardMaterial({
+            color: 0x3d2817,
+            roughness: 0.7,
+            metalness: 0.05
         });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
-        floor.receiveShadow = true;
-        scene.add(floor);
-
-        // Ceiling
-        const ceilingGeometry = new THREE.PlaneGeometry(20, 20);
-        const ceilingMaterial = new THREE.MeshStandardMaterial({ color: 0x111111 });
-        const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
-        ceiling.rotation.x = Math.PI / 2;
-        ceiling.position.y = 10;
-        scene.add(ceiling);
-
-        // Walls
-        const wallMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
+        
+        const woodMediumMaterial = new THREE.MeshStandardMaterial({
+            color: 0x5c3a1e,
+            roughness: 0.65,
+            metalness: 0.05
+        });
+        
+        const woodLightMaterial = new THREE.MeshStandardMaterial({
+            color: 0x8b6239,
+            roughness: 0.6,
+            metalness: 0.03
+        });
+        
+        const floorMaterial = new THREE.MeshStandardMaterial({
+            color: 0x2a1f15,
+            roughness: 0.85,
+            metalness: 0.05
+        });
+        
+        const wallMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1e1e1e,
+            roughness: 0.95,
+            metalness: 0.0
+        });
+        
+        const ceilingMaterial = new THREE.MeshStandardMaterial({
+            color: 0x151515,
             roughness: 0.9,
             metalness: 0.0
         });
 
-        // Back wall
-        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMaterial);
+        // ============================================
+        // ROOM ARCHITECTURE
+        // ============================================
+        
+        // Floor
+        const floorGeo = new THREE.PlaneGeometry(24, 24);
+        const floor = new THREE.Mesh(floorGeo, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Floor planks detail (subtle lines)
+        for (let i = -11; i <= 11; i += 2) {
+            const plank = new THREE.Mesh(
+                new THREE.BoxGeometry(24, 0.005, 0.02),
+                new THREE.MeshStandardMaterial({ color: 0x231a10, roughness: 0.9 })
+            );
+            plank.position.set(0, 0.003, i);
+            scene.add(plank);
+        }
+
+        // Ceiling
+        const ceilingGeo = new THREE.PlaneGeometry(24, 24);
+        const ceiling = new THREE.Mesh(ceilingGeo, ceilingMaterial);
+        ceiling.rotation.x = Math.PI / 2;
+        ceiling.position.y = 10;
+        scene.add(ceiling);
+
+        // Crown molding (ceiling trim)
+        function createCrownMolding() {
+            const moldingProfile = [
+                [0, 0], [0.15, 0], [0.15, 0.15], [0.1, 0.2], [0.05, 0.25], [0, 0.3]
+            ];
+            const shape = new THREE.Shape();
+            shape.moveTo(moldingProfile[0][0], moldingProfile[0][1]);
+            moldingProfile.forEach(p => shape.lineTo(p[0], p[1]));
+            
+            const extrudeSettings = { depth: 20, bevelEnabled: false };
+            const moldingGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const moldingMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5 });
+            
+            // Back wall molding
+            const backMolding = new THREE.Mesh(moldingGeo, moldingMat);
+            backMolding.position.set(-10, 9.7, -10);
+            scene.add(backMolding);
+            
+            // Front wall molding
+            const frontMolding = new THREE.Mesh(moldingGeo, moldingMat);
+            frontMolding.position.set(10, 9.7, 10);
+            frontMolding.rotation.y = Math.PI;
+            scene.add(frontMolding);
+            
+            // Side moldings
+            const sideGeo = new THREE.ExtrudeGeometry(shape, { depth: 20, bevelEnabled: false });
+            const leftMolding = new THREE.Mesh(sideGeo, moldingMat);
+            leftMolding.position.set(-10, 9.7, 10);
+            leftMolding.rotation.y = -Math.PI / 2;
+            scene.add(leftMolding);
+            
+            const rightMolding = new THREE.Mesh(sideGeo, moldingMat);
+            rightMolding.position.set(10, 9.7, -10);
+            rightMolding.rotation.y = Math.PI / 2;
+            scene.add(rightMolding);
+        }
+        createCrownMolding();
+
+        // Walls
+        const wallGeo = new THREE.PlaneGeometry(20, 10);
+        
+        const backWall = new THREE.Mesh(wallGeo, wallMaterial);
         backWall.position.set(0, 5, -10);
         backWall.receiveShadow = true;
         scene.add(backWall);
 
-        // Front wall
-        const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMaterial);
+        const frontWall = new THREE.Mesh(wallGeo, wallMaterial);
         frontWall.position.set(0, 5, 10);
         frontWall.rotation.y = Math.PI;
         frontWall.receiveShadow = true;
         scene.add(frontWall);
 
-        // Left wall
-        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMaterial);
+        const leftWall = new THREE.Mesh(wallGeo, wallMaterial);
         leftWall.position.set(-10, 5, 0);
         leftWall.rotation.y = Math.PI / 2;
         leftWall.receiveShadow = true;
         scene.add(leftWall);
 
-        // Right wall
-        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMaterial);
+        const rightWall = new THREE.Mesh(wallGeo, wallMaterial);
         rightWall.position.set(10, 5, 0);
         rightWall.rotation.y = -Math.PI / 2;
         rightWall.receiveShadow = true;
         scene.add(rightWall);
 
-        // Baseboards (white trim at bottom of walls)
-        const baseboardMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
-        const baseboardHeight = 0.3;
+        // Baseboards
+        const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x2a1f15, roughness: 0.6 });
+        const bbHeight = 0.25;
         
-        const bbBack = new THREE.Mesh(new THREE.BoxGeometry(20, baseboardHeight, 0.1), baseboardMaterial);
-        bbBack.position.set(0, baseboardHeight/2, -9.95);
+        const bbBack = new THREE.Mesh(new THREE.BoxGeometry(20, bbHeight, 0.08), baseboardMat);
+        bbBack.position.set(0, bbHeight/2, -9.96);
         scene.add(bbBack);
 
-        const bbFront = new THREE.Mesh(new THREE.BoxGeometry(20, baseboardHeight, 0.1), baseboardMaterial);
-        bbFront.position.set(0, baseboardHeight/2, 9.95);
+        const bbFront = new THREE.Mesh(new THREE.BoxGeometry(20, bbHeight, 0.08), baseboardMat);
+        bbFront.position.set(0, bbHeight/2, 9.96);
         scene.add(bbFront);
 
-        const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.1, baseboardHeight, 20), baseboardMaterial);
-        bbLeft.position.set(-9.95, baseboardHeight/2, 0);
+        const bbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.08, bbHeight, 20), baseboardMat);
+        bbLeft.position.set(-9.96, bbHeight/2, 0);
         scene.add(bbLeft);
 
-        const bbRight = new THREE.Mesh(new THREE.BoxGeometry(0.1, baseboardHeight, 20), baseboardMaterial);
-        bbRight.position.set(9.95, baseboardHeight/2, 0);
+        const bbRight = new THREE.Mesh(new THREE.BoxGeometry(0.08, bbHeight, 20), baseboardMat);
+        bbRight.position.set(9.96, bbHeight/2, 0);
         scene.add(bbRight);
 
-        // Artwork Meshes
+        // ============================================
+        // WOODEN SHELVES SYSTEM
+        // ============================================
+        
+        function createShelfUnit(position, rotation, wall) {
+            const group = new THREE.Group();
+            
+            const shelfWidth = 3.2;
+            const shelfDepth = 0.5;
+            const shelfThickness = 0.08;
+            const unitHeight = 5.5;
+            const shelfSpacing = 1.8;
+            
+            // Vertical supports (posts)
+            const postGeo = new THREE.BoxGeometry(0.1, unitHeight, shelfDepth);
+            const postLeft = new THREE.Mesh(postGeo, woodDarkMaterial);
+            postLeft.position.set(-shelfWidth/2, unitHeight/2, 0);
+            postLeft.castShadow = true;
+            group.add(postLeft);
+            
+            const postRight = new THREE.Mesh(postGeo, woodDarkMaterial);
+            postRight.position.set(shelfWidth/2, unitHeight/2, 0);
+            postRight.castShadow = true;
+            group.add(postRight);
+            
+            // Horizontal shelves
+            const numShelves = 4;
+            for (let i = 0; i < numShelves; i++) {
+                const y = 0.5 + i * shelfSpacing;
+                
+                // Shelf board
+                const shelfBoard = new THREE.Mesh(
+                    new THREE.BoxGeometry(shelfWidth, shelfThickness, shelfDepth),
+                    woodMediumMaterial
+                );
+                shelfBoard.position.set(0, y, 0);
+                shelfBoard.castShadow = true;
+                shelfBoard.receiveShadow = true;
+                group.add(shelfBoard);
+                
+                // Shelf front edge trim
+                const trim = new THREE.Mesh(
+                    new THREE.BoxGeometry(shelfWidth, 0.04, 0.06),
+                    woodLightMaterial
+                );
+                trim.position.set(0, y - shelfThickness/2 - 0.02, shelfDepth/2 + 0.01);
+                group.add(trim);
+                
+                // Books on shelf (decorative)
+                if (i < numShelves - 1) {
+                    const numBooks = 6 + Math.floor(Math.random() * 4);
+                    let bookX = -shelfWidth/2 + 0.3;
+                    for (let b = 0; b < numBooks && bookX < shelfWidth/2 - 0.3; b++) {
+                        const bookWidth = 0.08 + Math.random() * 0.12;
+                        const bookHeight = 0.3 + Math.random() * 0.4;
+                        const bookDepth = shelfDepth * 0.7;
+                        const bookColor = new THREE.Color().setHSL(
+                            0.05 + Math.random() * 0.1,
+                            0.3 + Math.random() * 0.3,
+                            0.15 + Math.random() * 0.15
+                        );
+                        const book = new THREE.Mesh(
+                            new THREE.BoxGeometry(bookWidth, bookHeight, bookDepth),
+                            new THREE.MeshStandardMaterial({ color: bookColor, roughness: 0.8 })
+                        );
+                        book.position.set(bookX + bookWidth/2, y + shelfThickness/2 + bookHeight/2, 0);
+                        book.castShadow = true;
+                        group.add(book);
+                        bookX += bookWidth + 0.02;
+                    }
+                }
+            }
+            
+            // Top crown
+            const crown = new THREE.Mesh(
+                new THREE.BoxGeometry(shelfWidth + 0.2, 0.15, shelfDepth + 0.1),
+                woodDarkMaterial
+            );
+            crown.position.set(0, unitHeight + 0.075, 0);
+            crown.castShadow = true;
+            group.add(crown);
+            
+            group.position.set(...position);
+            group.rotation.set(...rotation);
+            scene.add(group);
+            
+            return group;
+        }
+
+        // Create shelf units for each wall
+        createShelfUnit([-5, 0, -9.7], [0, 0, 0], "back");      // Maldini shelf
+        createShelfUnit([5, 0, -9.7], [0, 0, 0], "back");        // Toji shelf
+        createShelfUnit([-9.7, 0, 0], [0, Math.PI/2, 0], "left"); // Alice shelf
+        createShelfUnit([9.7, 0, 0], [0, -Math.PI/2, 0], "right"); // Morphine shelf
+
+        // Center display pedestal (optional decorative element)
+        const pedestalGeo = new THREE.BoxGeometry(1.2, 1, 1.2);
+        const pedestalMat = new THREE.MeshStandardMaterial({ 
+            color: 0x3d2817, 
+            roughness: 0.6,
+            metalness: 0.1
+        });
+        const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+        pedestal.position.set(0, 0.5, 0);
+        pedestal.castShadow = true;
+        pedestal.receiveShadow = true;
+        scene.add(pedestal);
+        
+        // Small plant on pedestal
+        const potGeo = new THREE.CylinderGeometry(0.15, 0.12, 0.25, 8);
+        const potMat = new THREE.MeshStandardMaterial({ color: 0x5c3a1e, roughness: 0.8 });
+        const pot = new THREE.Mesh(potGeo, potMat);
+        pot.position.set(0, 1.125, 0);
+        pot.castShadow = true;
+        scene.add(pot);
+        
+        const plantGeo = new THREE.DodecahedronGeometry(0.2, 1);
+        const plantMat = new THREE.MeshStandardMaterial({ color: 0x2d5a27, roughness: 0.9 });
+        const plant = new THREE.Mesh(plantGeo, plantMat);
+        plant.position.set(0, 1.4, 0);
+        plant.castShadow = true;
+        scene.add(plant);
+
+        // ============================================
+        // ARTWORK DISPLAY ON SHELVES
+        // ============================================
+        
         const artworkMeshes = [];
         const textureLoader = new THREE.TextureLoader();
         let loadedCount = 0;
@@ -447,78 +834,111 @@ html_code = '''<!DOCTYPE html>
                 },
                 undefined,
                 function(err) {
-                    // If image fails to load, create a colored placeholder
-                    console.warn('Failed to load image:', artwork.imageUrl);
                     loadedCount++;
                     updateLoading();
                 }
             );
 
-            // Frame
-            const frameThickness = 0.15;
-            const frameDepth = 0.1;
-            const frameGeometry = new THREE.BoxGeometry(
-                artwork.size[0] + frameThickness * 2, 
-                artwork.size[1] + frameThickness * 2, 
+            // Frame (elegant thin frame)
+            const frameThickness = 0.1;
+            const frameDepth = 0.06;
+            const frameGeo = new THREE.BoxGeometry(
+                artwork.size[0] + frameThickness * 2,
+                artwork.size[1] + frameThickness * 2,
                 frameDepth
             );
-            const frameMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x111111,
-                roughness: 0.3,
-                metalness: 0.8
+            const frameMat = new THREE.MeshStandardMaterial({
+                color: 0x1a1a1a,
+                roughness: 0.2,
+                metalness: 0.9
             });
-            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+            const frame = new THREE.Mesh(frameGeo, frameMat);
             frame.position.set(...artwork.position);
             frame.rotation.set(...artwork.rotation);
             frame.castShadow = true;
             scene.add(frame);
 
-            // Canvas
-            const canvasGeometry = new THREE.PlaneGeometry(artwork.size[0], artwork.size[1]);
-            const canvasMaterial = new THREE.MeshStandardMaterial({ 
+            // Matting (white border inside frame)
+            const matThickness = 0.15;
+            const matGeo = new THREE.PlaneGeometry(
+                artwork.size[0] + matThickness * 2,
+                artwork.size[1] + matThickness * 2
+            );
+            const matMat = new THREE.MeshStandardMaterial({
+                color: 0xf5f0e8,
+                roughness: 0.95
+            });
+            const mat = new THREE.Mesh(matGeo, matMat);
+            mat.position.set(...artwork.position);
+            mat.rotation.set(...artwork.rotation);
+            
+            const matOffset = 0.035;
+            if (artwork.wall === 'back') mat.position.z += matOffset;
+            if (artwork.wall === 'front') mat.position.z -= matOffset;
+            if (artwork.wall === 'left') mat.position.x += matOffset;
+            if (artwork.wall === 'right') mat.position.x -= matOffset;
+            scene.add(mat);
+
+            // Canvas (the actual artwork)
+            const canvasGeo = new THREE.PlaneGeometry(artwork.size[0], artwork.size[1]);
+            const canvasMat = new THREE.MeshStandardMaterial({
                 map: texture,
                 roughness: 0.5,
                 metalness: 0.0
             });
-            const canvas = new THREE.Mesh(canvasGeometry, canvasMaterial);
+            const canvas = new THREE.Mesh(canvasGeo, canvasMat);
             canvas.position.set(...artwork.position);
             canvas.rotation.set(...artwork.rotation);
             
-            // Push canvas slightly forward from frame
-            const offset = 0.06;
-            if (artwork.wall === 'back') canvas.position.z += offset;
-            if (artwork.wall === 'front') canvas.position.z -= offset;
-            if (artwork.wall === 'left') canvas.position.x += offset;
-            if (artwork.wall === 'right') canvas.position.x -= offset;
+            const canvasOffset = 0.04;
+            if (artwork.wall === 'back') canvas.position.z += canvasOffset;
+            if (artwork.wall === 'front') canvas.position.z -= canvasOffset;
+            if (artwork.wall === 'left') canvas.position.x += canvasOffset;
+            if (artwork.wall === 'right') canvas.position.x -= canvasOffset;
             
             canvas.userData = { artwork: artwork };
             scene.add(canvas);
             artworkMeshes.push(canvas);
 
-            // Label plate below artwork
-            const labelGeometry = new THREE.PlaneGeometry(1.5, 0.4);
-            const labelCanvas = document.createElement('canvas');
-            labelCanvas.width = 256;
-            labelCanvas.height = 64;
-            const ctx = labelCanvas.getContext('2d');
+            // Elegant brass label plate
+            const labelWidth = 1.8;
+            const labelHeight = 0.35;
+            const labelGeo = new THREE.PlaneGeometry(labelWidth, labelHeight);
+            
+            const labelCanvasEl = document.createElement('canvas');
+            labelCanvasEl.width = 360;
+            labelCanvasEl.height = 70;
+            const ctx = labelCanvasEl.getContext('2d');
+            
+            // Brass plate background
+            ctx.fillStyle = '#c9a96e';
+            ctx.fillRect(0, 0, 360, 70);
+            ctx.fillStyle = '#b8945f';
+            ctx.fillRect(2, 2, 356, 66);
+            ctx.fillStyle = '#c9a96e';
+            ctx.fillRect(4, 4, 352, 62);
+            
+            // Text
             ctx.fillStyle = '#1a1a1a';
-            ctx.fillRect(0, 0, 256, 64);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 20px Arial';
+            ctx.font = 'bold 22px "Segoe UI", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(artwork.title, 128, 30);
-            ctx.font = '14px Arial';
-            ctx.fillStyle = '#ff6b6b';
-            ctx.fillText(artwork.price, 128, 52);
+            ctx.fillText(artwork.title, 180, 32);
+            ctx.font = '18px "Segoe UI", sans-serif';
+            ctx.fillStyle = '#3d2817';
+            ctx.fillText(artwork.price, 180, 56);
             
-            const labelTexture = new THREE.CanvasTexture(labelCanvas);
-            const labelMaterial = new THREE.MeshBasicMaterial({ map: labelTexture, transparent: true });
-            const label = new THREE.Mesh(labelGeometry, labelMaterial);
+            const labelTexture = new THREE.CanvasTexture(labelCanvasEl);
+            const labelMat = new THREE.MeshStandardMaterial({
+                map: labelTexture,
+                roughness: 0.3,
+                metalness: 0.8
+            });
+            const label = new THREE.Mesh(labelGeo, labelMat);
             
-            label.position.set(artwork.position[0], artwork.position[1] - artwork.size[1]/2 - 0.5, artwork.position[2]);
+            label.position.set(artwork.position[0], artwork.position[1] - artwork.size[1]/2 - 0.45, artwork.position[2]);
             label.rotation.set(...artwork.rotation);
             
-            const labelOffset = 0.07;
+            const labelOffset = 0.05;
             if (artwork.wall === 'back') label.position.z += labelOffset;
             if (artwork.wall === 'front') label.position.z -= labelOffset;
             if (artwork.wall === 'left') label.position.x += labelOffset;
@@ -533,38 +953,41 @@ html_code = '''<!DOCTYPE html>
             if (loadedCount >= ARTWORKS.length) {
                 setTimeout(() => {
                     document.getElementById('loading').classList.add('hidden');
-                }, 500);
+                }, 600);
             }
         }
 
         ARTWORKS.forEach(loadArtwork);
 
         // ============================================
-        // MOVEMENT & CONTROLS
+        // MOVEMENT & CONTROLS (Desktop + Mobile)
         // ============================================
         
         const movement = { forward: false, backward: false, left: false, right: false };
         const velocity = new THREE.Vector3();
         const direction = new THREE.Vector3();
         let isLocked = false;
+        const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
 
-        // PointerLock setup
+        // Desktop PointerLock
         const canvas = renderer.domElement;
         
-        canvas.addEventListener('click', () => {
-            if (!isPopupOpen) {
-                canvas.requestPointerLock();
-            }
-        });
+        if (!isMobile) {
+            canvas.addEventListener('click', () => {
+                if (!isPopupOpen) {
+                    canvas.requestPointerLock();
+                }
+            });
 
-        document.addEventListener('pointerlockchange', () => {
-            isLocked = document.pointerLockElement === canvas;
-        });
+            document.addEventListener('pointerlockchange', () => {
+                isLocked = document.pointerLockElement === canvas;
+            });
+        }
 
-        // Mouse look
+        // Mouse look (desktop)
         let euler = new THREE.Euler(0, 0, 0, 'YXZ');
         document.addEventListener('mousemove', (e) => {
-            if (!isLocked || isPopupOpen) return;
+            if (!isLocked || isPopupOpen || isMobile) return;
             const sensitivity = 0.002;
             euler.setFromQuaternion(camera.quaternion);
             euler.y -= e.movementX * sensitivity;
@@ -573,8 +996,9 @@ html_code = '''<!DOCTYPE html>
             camera.quaternion.setFromEuler(euler);
         });
 
-        // Keyboard controls
+        // Keyboard controls (desktop)
         document.addEventListener('keydown', (e) => {
+            if (isMobile) return;
             switch(e.code) {
                 case 'KeyW': movement.forward = true; break;
                 case 'KeyS': movement.backward = true; break;
@@ -585,6 +1009,7 @@ html_code = '''<!DOCTYPE html>
         });
 
         document.addEventListener('keyup', (e) => {
+            if (isMobile) return;
             switch(e.code) {
                 case 'KeyW': movement.forward = false; break;
                 case 'KeyS': movement.backward = false; break;
@@ -594,7 +1019,165 @@ html_code = '''<!DOCTYPE html>
         });
 
         // ============================================
-        // RAYCASTING (Click to view artwork)
+        // MOBILE TOUCH CONTROLS - Virtual Joystick
+        // ============================================
+        
+        let joystickActive = false;
+        let joystickVector = { x: 0, y: 0 };
+        let joystickStartPos = { x: 0, y: 0 };
+        const joystickMaxRadius = 35;
+        
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickKnob = document.getElementById('joystick-knob');
+        const lookZone = document.getElementById('look-zone');
+        const actionBtn = document.getElementById('action-btn');
+
+        // Joystick touch handling
+        joystickZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = joystickZone.getBoundingClientRect();
+            joystickStartPos = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+            joystickActive = true;
+            joystickKnob.classList.add('active');
+            updateJoystick(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!joystickActive) return;
+            const touch = e.touches[0];
+            updateJoystick(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            joystickActive = false;
+            joystickVector = { x: 0, y: 0 };
+            joystickKnob.style.transform = 'translate(0px, 0px)';
+            joystickKnob.classList.remove('active');
+            movement.forward = false;
+            movement.backward = false;
+            movement.left = false;
+            movement.right = false;
+        }, { passive: false });
+
+        function updateJoystick(clientX, clientY) {
+            let dx = clientX - joystickStartPos.x;
+            let dy = clientY - joystickStartPos.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > joystickMaxRadius) {
+                const ratio = joystickMaxRadius / distance;
+                dx *= ratio;
+                dy *= ratio;
+            }
+            
+            joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+            joystickVector = { x: dx / joystickMaxRadius, y: dy / joystickMaxRadius };
+            
+            // Map to movement
+            const deadzone = 0.2;
+            movement.forward = joystickVector.y < -deadzone;
+            movement.backward = joystickVector.y > deadzone;
+            movement.left = joystickVector.x < -deadzone;
+            movement.right = joystickVector.x > deadzone;
+        }
+
+        // Look controls (right side touch)
+        let lookTouchId = null;
+        let lastLookTouch = { x: 0, y: 0 };
+        const lookSensitivity = 0.004;
+
+        lookZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (lookTouchId !== null) return;
+            const touch = e.changedTouches[0];
+            lookTouchId = touch.identifier;
+            lastLookTouch = { x: touch.clientX, y: touch.clientY };
+        }, { passive: false });
+
+        lookZone.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (lookTouchId === null) return;
+            
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (touch.identifier === lookTouchId) {
+                    const dx = touch.clientX - lastLookTouch.x;
+                    const dy = touch.clientY - lastLookTouch.y;
+                    
+                    euler.setFromQuaternion(camera.quaternion);
+                    euler.y -= dx * lookSensitivity;
+                    euler.x -= dy * lookSensitivity;
+                    euler.x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, euler.x));
+                    camera.quaternion.setFromEuler(euler);
+                    
+                    lastLookTouch = { x: touch.clientX, y: touch.clientY };
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        lookZone.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === lookTouchId) {
+                    lookTouchId = null;
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        lookZone.addEventListener('touchcancel', (e) => {
+            lookTouchId = null;
+        }, { passive: false });
+
+        // Action button (tap to interact)
+        let actionPressed = false;
+        
+        actionBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            actionPressed = true;
+            actionBtn.classList.add('pressed');
+            
+            // Trigger raycast
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObjects(artworkMeshes);
+            
+            if (intersects.length > 0 && intersects[0].distance < 8) {
+                const artwork = intersects[0].object.userData.artwork;
+                openPopup(artwork);
+            }
+        }, { passive: false });
+
+        actionBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            actionPressed = false;
+            actionBtn.classList.remove('pressed');
+        }, { passive: false });
+
+        // Double-tap on look zone to also trigger action
+        let lastTapTime = 0;
+        lookZone.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTapTime < 300) {
+                // Double tap detected
+                raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+                const intersects = raycaster.intersectObjects(artworkMeshes);
+                if (intersects.length > 0 && intersects[0].distance < 8) {
+                    const artwork = intersects[0].object.userData.artwork;
+                    openPopup(artwork);
+                }
+            }
+            lastTapTime = now;
+        });
+
+        // ============================================
+        // RAYCASTING (Click / Tap to view artwork)
         // ============================================
         
         const raycaster = new THREE.Raycaster();
@@ -602,8 +1185,9 @@ html_code = '''<!DOCTYPE html>
         let hoveredArtwork = null;
         let isPopupOpen = false;
 
+        // Desktop click
         canvas.addEventListener('click', (e) => {
-            if (!isLocked || isPopupOpen) return;
+            if (!isLocked || isPopupOpen || isMobile) return;
             
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             const intersects = raycaster.intersectObjects(artworkMeshes);
@@ -616,20 +1200,22 @@ html_code = '''<!DOCTYPE html>
 
         function openPopup(artwork) {
             isPopupOpen = true;
-            document.exitPointerLock();
+            if (!isMobile) {
+                document.exitPointerLock();
+            }
             
             document.getElementById('popup-image').src = artwork.imageUrl;
             document.getElementById('popup-title').textContent = artwork.title;
             document.getElementById('popup-artist').textContent = artwork.artist;
             document.getElementById('popup-price').textContent = artwork.price;
             
-            // Update WhatsApp link with artwork info
-            const whatsappText = encodeURIComponent(`Hello! I'm interested in buying "${artwork.title}" (${artwork.price}) from Ta3lii9aa Gallery.`);
+            // WhatsApp message: "Hello, I want to buy [Artwork Name] for 70 DH."
+            const whatsappText = encodeURIComponent(`Hello, I want to buy ${artwork.title} for 70 DH.`);
             document.getElementById('popup-whatsapp').href = `https://wa.me/212658836033?text=${whatsappText}`;
             
-            // Update email with subject
-            const emailSubject = encodeURIComponent(`Inquiry: ${artwork.title}`);
-            const emailBody = encodeURIComponent(`Hello,\n\nI'm interested in purchasing "${artwork.title}" priced at ${artwork.price}.\n\nBest regards`);
+            // Email with subject and body
+            const emailSubject = encodeURIComponent(`Purchase Inquiry: ${artwork.title}`);
+            const emailBody = encodeURIComponent(`Hello,\n\nI want to buy ${artwork.title} for 70 DH.\n\nPlease let me know the next steps.\n\nBest regards`);
             document.getElementById('popup-email').href = `mailto:hassan.hafidi2005@gmail.com?subject=${emailSubject}&body=${emailBody}`;
             
             document.getElementById('popup-overlay').classList.add('active');
@@ -652,8 +1238,8 @@ html_code = '''<!DOCTYPE html>
         // ============================================
         
         const clock = new THREE.Clock();
-        const moveSpeed = 5.0;
-        const boundary = 8.5; // Keep player inside room
+        const moveSpeed = 4.5;
+        const boundary = 8.5;
 
         function animate() {
             requestAnimationFrame(animate);
@@ -661,42 +1247,62 @@ html_code = '''<!DOCTYPE html>
             const delta = clock.getDelta();
             
             // Movement
-            if (isLocked && !isPopupOpen) {
+            if (!isPopupOpen) {
                 velocity.x = 0;
                 velocity.z = 0;
                 
-                direction.z = Number(movement.forward) - Number(movement.backward);
-                direction.x = Number(movement.right) - Number(movement.left);
-                direction.normalize();
-                
-                if (movement.forward || movement.backward) {
-                    velocity.z -= direction.z * moveSpeed * delta;
+                if (isMobile && joystickActive) {
+                    // Mobile joystick movement
+                    const forwardAmount = -joystickVector.y;
+                    const rightAmount = joystickVector.x;
+                    
+                    if (Math.abs(forwardAmount) > 0.2 || Math.abs(rightAmount) > 0.2) {
+                        const speed = moveSpeed * delta;
+                        camera.translateZ(-forwardAmount * speed * 0.8);
+                        camera.translateX(rightAmount * speed * 0.8);
+                    }
+                } else if (isLocked) {
+                    // Desktop WASD movement
+                    direction.z = Number(movement.forward) - Number(movement.backward);
+                    direction.x = Number(movement.right) - Number(movement.left);
+                    direction.normalize();
+                    
+                    if (movement.forward || movement.backward) {
+                        velocity.z -= direction.z * moveSpeed * delta;
+                    }
+                    if (movement.left || movement.right) {
+                        velocity.x -= direction.x * moveSpeed * delta;
+                    }
+                    
+                    camera.translateX(-velocity.x);
+                    camera.translateZ(-velocity.z);
                 }
-                if (movement.left || movement.right) {
-                    velocity.x -= direction.x * moveSpeed * delta;
-                }
-                
-                // Apply movement relative to camera direction
-                camera.translateX(-velocity.x);
-                camera.translateZ(-velocity.z);
                 
                 // Boundary checks
                 camera.position.x = Math.max(-boundary, Math.min(boundary, camera.position.x));
                 camera.position.z = Math.max(-boundary, Math.min(boundary, camera.position.z));
-                camera.position.y = 1.7; // Keep eye level
+                camera.position.y = 1.65;
             }
             
             // Raycast for hover effect
-            if (isLocked && !isPopupOpen) {
+            if (!isPopupOpen) {
                 raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                 const intersects = raycaster.intersectObjects(artworkMeshes);
                 
                 if (intersects.length > 0 && intersects[0].distance < 8) {
                     document.getElementById('crosshair').classList.add('hovering');
                     hoveredArtwork = intersects[0].object.userData.artwork;
+                    if (isMobile) {
+                        actionBtn.textContent = 'VIEW';
+                        actionBtn.style.background = 'rgba(201,169,110,0.25)';
+                    }
                 } else {
                     document.getElementById('crosshair').classList.remove('hovering');
                     hoveredArtwork = null;
+                    if (isMobile) {
+                        actionBtn.textContent = 'VIEW';
+                        actionBtn.style.background = 'rgba(201,169,110,0.15)';
+                    }
                 }
             }
             
@@ -719,5 +1325,9 @@ html_code = '''<!DOCTYPE html>
 with open('/mnt/agents/output/index.html', 'w', encoding='utf-8') as f:
     f.write(html_code)
 
-print("✅ index.html saved successfully!")
-print(f"File size: {len(html_code)} characters")
+# Count lines and characters
+lines = html_code.count('\n') + 1
+chars = len(html_code)
+print(f"✅ index.html saved successfully!")
+print(f"📊 Total lines: {lines}")
+print(f"📊 Total characters: {chars}")
